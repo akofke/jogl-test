@@ -19,6 +19,7 @@ public class Main {
         var frame = new JFrame("Hi");
 
         SwingUtilities.invokeLater(() -> {
+            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.getContentPane().add(panel);
             frame.pack();
             frame.setVisible(true);
@@ -54,6 +55,7 @@ public class Main {
             gl.glClear(GL2.GL_COLOR_BUFFER_BIT | GL2.GL_DEPTH_BUFFER_BIT );
             gl.glLoadIdentity();
             gl.glTranslatef( 0f, 0f, -5.0f );
+
 
             // Rotate The Cube On X, Y & Z
             gl.glRotatef(rquad, 1.0f, 1.0f, 1.0f);

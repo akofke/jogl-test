@@ -50,7 +50,7 @@ public class J3D {
         double[] coords = new double[1000 * 3];
         BranchGroup root = new BranchGroup();
 
-        int n = 10000;
+        int n = 5000;
         TransformGroup[] groups = new TransformGroup[n];
         Transform3D[] tfs = new Transform3D[n];
         Vector3d[] pos = new Vector3d[n];

@@ -11,5 +11,7 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="jogl" level="project" />
     <orderEntry type="library" name="java3d" level="project" />
+    <orderEntry type="library" name="org.joml:joml:1.9.25" level="project" />
+    <orderEntry type="library" name="joml-camera-1.2.0-SNAPSHOT" level="project" />
   </component>
 </module>
