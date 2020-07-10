@@ -13,5 +13,6 @@
     <orderEntry type="library" name="java3d" level="project" />
     <orderEntry type="library" name="org.joml:joml:1.9.25" level="project" />
     <orderEntry type="library" name="joml-camera-1.2.0-SNAPSHOT" level="project" />
+    <orderEntry type="library" name="de.javagl:obj:0.3.0" level="project" />
   </component>
 </module>

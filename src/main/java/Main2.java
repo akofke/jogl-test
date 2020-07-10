@@ -1,4 +1,5 @@
 import com.jogamp.common.net.Uri;
+import com.jogamp.common.nio.Buffers;
 import com.jogamp.nativewindow.NativeWindow;
 import com.jogamp.nativewindow.ScalableSurface;
 import com.jogamp.opengl.*;
@@ -9,8 +10,12 @@ import com.jogamp.opengl.util.*;
 import com.jogamp.opengl.util.glsl.ShaderCode;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
 import com.jogamp.opengl.util.glsl.ShaderState;
+import de.javagl.obj.ObjData;
+import de.javagl.obj.ObjReader;
+import de.javagl.obj.ObjUtils;
 import jogamp.nativewindow.SurfaceScaleUtils;
 import jogamp.nativewindow.macosx.OSXUtil;
+import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
@@ -22,6 +27,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
@@ -55,7 +61,9 @@ public class Main2 {
             frame.pack();
             frame.setVisible(true);
 
-            var animator = new FPSAnimator(panel, 60);
+//            var animator = new FPSAnimator(panel, 300);
+            var animator = new Animator(panel);
+            animator.setUpdateFPSFrames(60, System.err);
             animator.start();
         });
     }
@@ -73,8 +81,6 @@ public class Main2 {
         private float zoom = 20.0f;
         private float pitch = 0.3f;
         private float yaw = 0.2f;
-
-        private final ArcBallCamera cam = new ArcBallCamera();
 
         private final FloatBuffer matBuffer = GLBuffers.newDirectFloatBuffer(16);
 
@@ -145,10 +151,13 @@ public class Main2 {
         });
         private ShaderState shaderState;
 
-        private int N = 50000;
+        private int N = 10000;
 
         private final FloatBuffer pos = genPos(N);
         private int posVbo = -1;
+
+        private FloatBuffer sphereVertices;
+        private IntBuffer sphereIndices;
 
         private FloatBuffer genPos(int n) {
             var rand = new Random().doubles(-10, 10).iterator();
@@ -169,10 +178,35 @@ public class Main2 {
             }
         }
 
+        private void readSphere() {
+            try {
+                var obj = ObjReader.read((getClass().getResourceAsStream("sphere.obj")));
+                obj = ObjUtils.convertToRenderable(obj);
+                var vertices = ObjData.getVerticesArray(obj);
+                var normals = ObjData.getNormalsArray(obj);
+                this.sphereIndices = ObjData.getFaceVertexIndices(obj);
+
+                var sphereVertices = GLBuffers.newDirectFloatBuffer(2 * vertices.length);
+                for (int i = 0; i < vertices.length / 3; i++) {
+                    sphereVertices.put(vertices, i * 3, 3);
+                    sphereVertices.put(normals, i * 3, 3);
+                }
+                sphereVertices.rewind();
+                this.sphereVertices = sphereVertices;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+        }
+
         @Override
         public void init(GLAutoDrawable drawable) {
+            this.readSphere();
+
             final GL3 gl = drawable.getGL().getGL3();
+            gl.setSwapInterval(0);
             gl.glEnable(gl.GL_DEPTH_TEST);
+            gl.glEnable(gl.GL_CULL_FACE);
             gl.glClearColor( 0.1f, 0.1f, 0.1f, 0f );
 
             var vert = ShaderCode.create(gl, gl.GL_VERTEX_SHADER, 1, this.getClass(), new String[]{"vertex.vert"}, false);
@@ -194,13 +228,17 @@ public class Main2 {
             var vbo = IntBuffer.allocate(1);
             gl.glGenBuffers(1, vbo);
             gl.glBindBuffer(gl.GL_ARRAY_BUFFER, vbo.get(0));
-            gl.glBufferData(gl.GL_ARRAY_BUFFER, vertices.capacity() * Float.BYTES, vertices, gl.GL_STATIC_DRAW);
+            gl.glBufferData(gl.GL_ARRAY_BUFFER, sphereVertices.capacity() * Float.BYTES, sphereVertices, gl.GL_STATIC_DRAW);
 
             gl.glVertexAttribPointer(0, 3, gl.GL_FLOAT, false, 6 * Float.BYTES, 0);
             gl.glEnableVertexAttribArray(0);
 
             gl.glVertexAttribPointer(1, 3, gl.GL_FLOAT, false, 6 * Float.BYTES, 3 * Float.BYTES);
             gl.glEnableVertexAttribArray(1);
+
+            gl.glGenBuffers(1, vbo);
+            gl.glBindBuffer(gl.GL_ELEMENT_ARRAY_BUFFER, vbo.get(0));
+            gl.glBufferData(gl.GL_ELEMENT_ARRAY_BUFFER, sphereIndices.capacity() * Integer.BYTES, sphereIndices, gl.GL_STATIC_DRAW);
 
             gl.glGenBuffers(1, vbo);
             this.posVbo = vbo.get(0);
@@ -223,8 +261,6 @@ public class Main2 {
 //            gl.glBufferData(gl.GL_ELEMENT_ARRAY_BUFFER, indices.capacity() * Integer.BYTES, indices, gl.GL_STATIC_DRAW);
 
             gl.glBindVertexArray(0);
-
-            cam.center(0, 0, 0);
 
             lastTime = System.nanoTime();
         }
@@ -255,8 +291,9 @@ public class Main2 {
 
             var model = new Matrix4f()
 //                    .identity();
-                    .scale(0.1f)
+                    .scale(0.01f)
                     .rotate(time, new Vector3f(0.5f, 1.0f, 0.0f).normalize());
+            var normalMatrix = model.normal(new Matrix3f());
             var view = new Matrix4f()
                     .translation(0, 0, -zoom)
                     .rotateX(pitch)
@@ -265,6 +302,7 @@ public class Main2 {
                     .perspective(((float) Math.toRadians(30.0)), ((float) width) / height, 0.1f, 100.0f);
 
             shaderState.uniform(gl, new GLUniformData("model", 4, 4, model.get(matBuffer)));
+            shaderState.uniform(gl, new GLUniformData("normalMatrix", 3, 3, normalMatrix.get(GLBuffers.newDirectFloatBuffer(9))));
             shaderState.uniform(gl, new GLUniformData("view", 4, 4, view.get(matBuffer)));
             shaderState.uniform(gl, new GLUniformData("projection", 4, 4, projection.get(matBuffer)));
 
@@ -290,9 +328,10 @@ public class Main2 {
 
 //            gl.glDrawArrays(gl.GL_TRIANGLES, 0, vertices.capacity());
 
-            gl.glDrawArraysInstanced(gl.GL_TRIANGLES, 0, vertices.capacity(), N);
+            gl.glDrawElementsInstanced(gl.GL_TRIANGLES, sphereIndices.capacity(), gl.GL_UNSIGNED_INT, 0, N);
 
-            System.out.println((System.nanoTime() - start) / 1.0e6);
+//            gl.glFlush();
+//            System.out.println((System.nanoTime() - start) / 1.0e6);
         }
 
         @Override
