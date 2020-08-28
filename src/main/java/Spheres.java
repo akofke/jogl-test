@@ -1,25 +1,17 @@
-import com.jogamp.common.net.Uri;
-import com.jogamp.common.nio.Buffers;
-import com.jogamp.nativewindow.NativeWindow;
-import com.jogamp.nativewindow.ScalableSurface;
 import com.jogamp.opengl.*;
 import com.jogamp.opengl.awt.GLCanvas;
-import com.jogamp.opengl.awt.GLJPanel;
 import com.jogamp.opengl.glu.GLU;
-import com.jogamp.opengl.util.*;
+import com.jogamp.opengl.util.Animator;
+import com.jogamp.opengl.util.GLBuffers;
 import com.jogamp.opengl.util.glsl.ShaderCode;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
 import com.jogamp.opengl.util.glsl.ShaderState;
 import de.javagl.obj.ObjData;
 import de.javagl.obj.ObjReader;
 import de.javagl.obj.ObjUtils;
-import jogamp.nativewindow.SurfaceScaleUtils;
-import jogamp.nativewindow.macosx.OSXUtil;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
-import org.joml.Vector4f;
-import org.joml.camera.ArcBallCamera;
 
 import javax.swing.*;
 import java.awt.*;
@@ -28,16 +20,12 @@ import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
-import java.time.Duration;
-import java.time.Instant;
-import java.util.Arrays;
 import java.util.Random;
 import java.util.SplittableRandom;
 
-public class Main2 {
+public class Spheres {
     public static void main(String[] args) {
         var profile = GLProfile.get(GLProfile.GL3);
         var caps = new GLCapabilities(profile);
@@ -94,69 +82,13 @@ public class Main2 {
 //                -0.5f,  0.5f, 0.0f   // top left
 //        });
 
-        private final FloatBuffer colors = GLBuffers.newDirectFloatBuffer(new float[] {
-                1.0f, 0.0f, 0.0f,
-                0.5f, 0.5f, 0.5f,
-                0.0f, 1.0f, 0.0f,
-                0.0f, 0.0f, 1.0f,
-        });
-
-        private final IntBuffer indices = GLBuffers.newDirectIntBuffer(new int[] {
-                0, 1, 3,
-                1, 2, 3
-        });
-
-        private final FloatBuffer vertices = GLBuffers.newDirectFloatBuffer(new float[]{
-                -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-                0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-                0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-                0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-                -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-                -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-
-                -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-                0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-                0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-                0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-                -0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-                -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-
-                -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
-                -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-                -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-                -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-                -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
-                -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
-
-                0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-                0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-                0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-                0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-                0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-                0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-
-                -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
-                0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
-                0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-                0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-                -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-                -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
-
-                -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
-                0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
-                0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-                0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-                -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-                -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
-        });
         private ShaderState shaderState;
 
-        private int N = 5000;
+        private int N = 10000;
 
         private final FloatBuffer pos = genPos(N);
         private int posVbo = -1;
 
-        private FloatBuffer sphereVertices;
         private IntBuffer sphereIndices;
 
         private FloatBuffer genPos(int n) {
@@ -178,42 +110,21 @@ public class Main2 {
             }
         }
 
-        private void readSphere() {
-            try {
-                var obj = ObjReader.read((getClass().getResourceAsStream("smallsphere.obj")));
-                obj = ObjUtils.convertToRenderable(obj);
-                var vertices = ObjData.getVerticesArray(obj);
-                var normals = ObjData.getNormalsArray(obj);
-                this.sphereIndices = ObjData.getFaceVertexIndices(obj);
-
-                var sphereVertices = GLBuffers.newDirectFloatBuffer(2 * vertices.length);
-                for (int i = 0; i < vertices.length / 3; i++) {
-                    sphereVertices.put(vertices, i * 3, 3);
-                    sphereVertices.put(normals, i * 3, 3);
-                }
-                sphereVertices.rewind();
-                this.sphereVertices = sphereVertices;
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-        }
-
         @Override
         public void init(GLAutoDrawable drawable) {
-            this.readSphere();
-
             final GL3 gl = drawable.getGL().getGL3();
             gl.setSwapInterval(0);
             gl.glEnable(gl.GL_DEPTH_TEST);
-            gl.glEnable(gl.GL_CULL_FACE);
+//            gl.glEnable(gl.GL_CULL_FACE);
             gl.glClearColor( 0.1f, 0.1f, 0.1f, 0f );
 
-            var vert = ShaderCode.create(gl, gl.GL_VERTEX_SHADER, 1, this.getClass(), new String[]{"vertex.vert"}, false);
-            var frag = ShaderCode.create(gl, gl.GL_FRAGMENT_SHADER, 1, this.getClass(), new String[]{"fragment.frag"}, false);
+            var vert = ShaderCode.create(gl, gl.GL_VERTEX_SHADER, 1, this.getClass(), new String[]{"sphere.vert"}, false);
+            var geom = ShaderCode.create(gl, gl.GL_GEOMETRY_SHADER, 1, this.getClass(), new String[]{"sphere.geom"}, false);
+            var frag = ShaderCode.create(gl, gl.GL_FRAGMENT_SHADER, 1, this.getClass(), new String[]{"sphere.frag"}, false);
 
             var prog = new ShaderProgram();
             prog.add(gl, vert, System.err);
+            prog.add(gl, geom, System.err);
             prog.add(gl, frag, System.err);
             prog.link(gl, System.err);
             this.shader = prog;
@@ -226,39 +137,13 @@ public class Main2 {
             gl.glBindVertexArray(vao);
 
             var vbo = IntBuffer.allocate(1);
-            gl.glGenBuffers(1, vbo);
-            gl.glBindBuffer(gl.GL_ARRAY_BUFFER, vbo.get(0));
-            gl.glBufferData(gl.GL_ARRAY_BUFFER, sphereVertices.capacity() * Float.BYTES, sphereVertices, gl.GL_STATIC_DRAW);
-
-            gl.glVertexAttribPointer(0, 3, gl.GL_FLOAT, false, 6 * Float.BYTES, 0);
-            gl.glEnableVertexAttribArray(0);
-
-            gl.glVertexAttribPointer(1, 3, gl.GL_FLOAT, false, 6 * Float.BYTES, 3 * Float.BYTES);
-            gl.glEnableVertexAttribArray(1);
-
-            gl.glGenBuffers(1, vbo);
-            gl.glBindBuffer(gl.GL_ELEMENT_ARRAY_BUFFER, vbo.get(0));
-            gl.glBufferData(gl.GL_ELEMENT_ARRAY_BUFFER, sphereIndices.capacity() * Integer.BYTES, sphereIndices, gl.GL_STATIC_DRAW);
 
             gl.glGenBuffers(1, vbo);
             this.posVbo = vbo.get(0);
             gl.glBindBuffer(gl.GL_ARRAY_BUFFER, vbo.get(0));
             gl.glBufferData(gl.GL_ARRAY_BUFFER, pos.capacity() * Float.BYTES, pos, gl.GL_STREAM_DRAW);
-            gl.glVertexAttribPointer(2, 3, gl.GL_FLOAT, false, 3 * Float.BYTES, 0);
-            gl.glEnableVertexAttribArray(2);
-            gl.glVertexAttribDivisor(2, 1);
-
-//            gl.glGenBuffers(1, vbo);
-//            gl.glBindBuffer(gl.GL_ARRAY_BUFFER, vbo.get(0));
-//            gl.glBufferData(gl.GL_ARRAY_BUFFER, colors.capacity() * Float.BYTES, colors, gl.GL_STATIC_DRAW);
-//
-//            gl.glVertexAttribPointer(1, 3, gl.GL_FLOAT, false, 3 * Float.BYTES, 0);
-//            gl.glEnableVertexAttribArray(1);
-
-//            var ebo = new int[1];
-//            gl.glGenBuffers(1, ebo, 0);
-//            gl.glBindBuffer(gl.GL_ELEMENT_ARRAY_BUFFER, ebo[0]);
-//            gl.glBufferData(gl.GL_ELEMENT_ARRAY_BUFFER, indices.capacity() * Integer.BYTES, indices, gl.GL_STATIC_DRAW);
+            gl.glVertexAttribPointer(0, 3, gl.GL_FLOAT, false, 3 * Float.BYTES, 0);
+            gl.glEnableVertexAttribArray(0);
 
             gl.glBindVertexArray(0);
 
@@ -289,11 +174,6 @@ public class Main2 {
             float timeDiff = (float) ((this.lastTime - thisTime) / 1.0e9);
             lastTime = thisTime;
 
-            var model = new Matrix4f()
-//                    .identity();
-                    .scale(0.1f)
-                    .rotate(time, new Vector3f(0.5f, 1.0f, 0.0f).normalize());
-            var normalMatrix = model.normal(new Matrix3f());
             var view = new Matrix4f()
                     .translation(0, 0, -zoom)
                     .rotateX(pitch)
@@ -301,8 +181,7 @@ public class Main2 {
             var projection = new Matrix4f()
                     .perspective(((float) Math.toRadians(30.0)), ((float) width) / height, 0.1f, 100.0f);
 
-            shaderState.uniform(gl, new GLUniformData("model", 4, 4, model.get(matBuffer)));
-            shaderState.uniform(gl, new GLUniformData("normalMatrix", 3, 3, normalMatrix.get(GLBuffers.newDirectFloatBuffer(9))));
+
             shaderState.uniform(gl, new GLUniformData("view", 4, 4, view.get(matBuffer)));
             shaderState.uniform(gl, new GLUniformData("projection", 4, 4, projection.get(matBuffer)));
 
@@ -322,13 +201,8 @@ public class Main2 {
             shaderState.uniform(gl, new GLUniformData("dirLight.specular", 3, GLBuffers.newDirectFloatBuffer(new float[]{0.9f, 0.9f, 0.9f})));
 
             gl.glBindVertexArray(this.vao);
-//            int vertexColorLoc = gl.glGetUniformLocation(this.shader.program(), "ourColor");
-//            gl.glUniform4f(vertexColorLoc, 0.0f, greenValue, 0.0f, 1.0f);
-//            gl.glDrawElements(gl.GL_TRIANGLES, indices.capacity(), gl.GL_UNSIGNED_INT, 0);
 
-//            gl.glDrawArrays(gl.GL_TRIANGLES, 0, vertices.capacity());
-
-            gl.glDrawElementsInstanced(gl.GL_TRIANGLES, sphereIndices.capacity(), gl.GL_UNSIGNED_INT, 0, N);
+            gl.glDrawArrays(gl.GL_POINTS, 0, pos.capacity() / 3);
 
 //            gl.glFlush();
 //            System.out.println((System.nanoTime() - start) / 1.0e6);
@@ -340,8 +214,9 @@ public class Main2 {
 
             // wtf
             var scale = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration().getDefaultTransform().getScaleX();
-            width = width * (int)scale;
-            height = height * (int)scale;
+            System.out.println(scale);
+//            width = width * (int)scale;
+//            height = height * (int)scale;
             this.width = width;
             this.height = height;
             gl.glViewport( 0, 0, width, height);
