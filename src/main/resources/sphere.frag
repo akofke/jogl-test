@@ -21,6 +21,7 @@ struct Material {
 
 uniform DirLight dirLight;
 uniform Material material;
+uniform mat4 view;
 uniform mat4 projection;
 uniform vec3 viewPos;
 
@@ -30,6 +31,7 @@ smooth in vec3 frag_pos;
 
 vec3 calcDirLight(DirLight light, vec3 normal, vec3 viewDir) {
     vec3 lightDir = normalize(-light.direction);
+    lightDir = (view * vec4(lightDir, 0)).xyz;
 
     float diffuseFac = max(dot(normal, lightDir), 0.0);
 
@@ -52,9 +54,9 @@ void main() {
     float C = dot(rij, rij) - radius_sq;
     float arg = B * B - A * C;
     if (arg < 0.0) {
-        FragColor = vec4(1);
-        return;
-//        discard;
+//        FragColor = vec4(1);
+//        return;
+        discard;
     }
 
     float t = -C / (B - sqrt(arg));
@@ -66,7 +68,7 @@ void main() {
 
     vec3 surface_normal = normalize(hit - sphere_center);
 
-    vec3 viewDir = normalize(viewPos - frag_pos);
+    vec3 viewDir = normalize(-frag_pos);
     vec3 color = calcDirLight(dirLight, surface_normal, viewDir);
     FragColor = vec4(color, 1.0);
 }

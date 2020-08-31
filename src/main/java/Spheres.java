@@ -163,7 +163,7 @@ public class Spheres {
             gl.glClearColor( 0.1f, 0.1f, 0.1f, 0f );
             gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT);
 
-            updatePos();
+//            updatePos();
             gl.glBindBuffer(gl.GL_ARRAY_BUFFER, this.posVbo);
             gl.glBufferSubData(gl.GL_ARRAY_BUFFER, 0, pos.capacity() * Float.BYTES, pos);
 
@@ -175,15 +175,19 @@ public class Spheres {
             lastTime = thisTime;
 
             var view = new Matrix4f()
-                    .translation(0, 0, -zoom)
+                    .translation(0, 0, -20)
                     .rotateX(pitch)
                     .rotateY(yaw);
             var projection = new Matrix4f()
-                    .perspective(((float) Math.toRadians(30.0)), ((float) width) / height, 0.1f, 100.0f);
+                    .perspective(((float) Math.toRadians(90.0)), ((float) width) / height, 0.1f, 100.0f);
+
+            projection = new Matrix4f()
+                    .ortho(-width / 2f / 100 * zoom, width / 2f / 100 * zoom, -height/ 2f / 100 * zoom, height / 2f / 100 * zoom, 0.01f, 100.0f);
 
 
             shaderState.uniform(gl, new GLUniformData("view", 4, 4, view.get(matBuffer)));
             shaderState.uniform(gl, new GLUniformData("projection", 4, 4, projection.get(matBuffer)));
+            shaderState.uniform(gl, new GLUniformData("nearZ", 0.1f));
 
             var viewPos = view.transformPosition(new Vector3f()).negate();
             shaderState.uniform(gl, new GLUniformData("viewPos", 3, viewPos.get(GLBuffers.newDirectFloatBuffer(3))));
@@ -194,7 +198,7 @@ public class Spheres {
             shaderState.uniform(gl, new GLUniformData("material.shininess", 32.0f));
 
 //            var lightDir = new Vector3f(-1, -1, -1).rotateX(time);
-            var lightDir = new Vector3f(1, 1, 1);
+            var lightDir = new Vector3f(.5f, .5f, -1);
             shaderState.uniform(gl, new GLUniformData("dirLight.direction", 3, lightDir.get(GLBuffers.newDirectFloatBuffer(3))));
             shaderState.uniform(gl, new GLUniformData("dirLight.ambient", 3, GLBuffers.newDirectFloatBuffer(new float[]{0.6f, 0.6f, 0.6f})));
             shaderState.uniform(gl, new GLUniformData("dirLight.diffuse", 3, GLBuffers.newDirectFloatBuffer(new float[]{0.8f, 0.8f, 0.8f})));
