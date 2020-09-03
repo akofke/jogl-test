@@ -8,5 +8,5 @@ out float vRadius;
 
 void main() {
     gl_Position = view * vec4(position, 1);
-    vRadius = 0.1;
+    vRadius = 0.5;
 }

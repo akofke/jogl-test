@@ -84,7 +84,7 @@ public class Spheres {
 
         private ShaderState shaderState;
 
-        private int N = 10000;
+        private int N = 1000;
 
         private final FloatBuffer pos = genPos(N);
         private int posVbo = -1;
@@ -175,14 +175,18 @@ public class Spheres {
             lastTime = thisTime;
 
             var view = new Matrix4f()
-                    .translation(0, 0, -20)
+                    .translation(0, 0, -zoom)
                     .rotateX(pitch)
                     .rotateY(yaw);
             var projection = new Matrix4f()
-                    .perspective(((float) Math.toRadians(90.0)), ((float) width) / height, 0.1f, 100.0f);
+                    .perspective(((float) Math.toRadians(45.0)), ((float) width) / height, 0.1f, 100.0f);
 
-            projection = new Matrix4f()
-                    .ortho(-width / 2f / 100 * zoom, width / 2f / 100 * zoom, -height/ 2f / 100 * zoom, height / 2f / 100 * zoom, 0.01f, 100.0f);
+//            view = new Matrix4f()
+//                    .translation(0, 0, -20f)
+//                    .rotateX(pitch)
+//                    .rotateY(yaw);
+//            projection = new Matrix4f()
+//                    .ortho(-width / 2f / 100 * zoom, width / 2f / 100 * zoom, -height/ 2f / 100 * zoom, height / 2f / 100 * zoom, 0.01f, 100.0f);
 
 
             shaderState.uniform(gl, new GLUniformData("view", 4, 4, view.get(matBuffer)));

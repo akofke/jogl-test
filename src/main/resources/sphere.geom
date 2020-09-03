@@ -6,7 +6,7 @@
 */
 
 /** The number of sides in the bounding polygon. Must be even. */
-#define N 4
+#define N 8
 /** The number of axes to caclulate bounds along. Two bounds per axis */
 #define N_AXES (N/2)
 #define PI (3.1415926)

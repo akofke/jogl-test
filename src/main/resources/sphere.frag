@@ -45,22 +45,20 @@ vec3 calcDirLight(DirLight light, vec3 normal, vec3 viewDir) {
 }
 
 void main() {
-    vec3 rij = -sphere_center;
-    vec3 vij = frag_pos;
+    vec3 sphere_dir = sphere_center;
+    vec3 ray_dir = normalize(frag_pos);
     gl_FragDepth = gl_FragCoord.z;
 
-    float A = dot(vij, vij);
-    float B = dot(rij, vij);
-    float C = dot(rij, rij) - radius_sq;
-    float arg = B * B - A * C;
-    if (arg < 0.0) {
+    float b = dot(ray_dir, sphere_dir);
+    float disc = b*b + radius_sq - dot(sphere_dir, sphere_dir);
+    if (disc < 0.0) {
 //        FragColor = vec4(1);
 //        return;
         discard;
     }
 
-    float t = -C / (B - sqrt(arg));
-    vec3 hit = t * vij;
+    float t = b - sqrt(disc);
+    vec3 hit = t * ray_dir;
 
     vec4 pos = vec4(hit, 1.0);
     vec4 screen_pos = projection * pos;
@@ -70,5 +68,8 @@ void main() {
 
     vec3 viewDir = normalize(-frag_pos);
     vec3 color = calcDirLight(dirLight, surface_normal, viewDir);
+    float edgeFac = dot(viewDir, surface_normal);
+    float fac = smoothstep(0.3, 0.4, edgeFac);
+    color = color * fac;
     FragColor = vec4(color, 1.0);
 }
