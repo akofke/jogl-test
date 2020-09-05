@@ -1,5 +1,6 @@
 import com.jogamp.opengl.*;
 import com.jogamp.opengl.awt.GLCanvas;
+import com.jogamp.opengl.awt.GLJPanel;
 import com.jogamp.opengl.glu.GLU;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.GLBuffers;
@@ -113,7 +114,7 @@ public class Spheres {
         @Override
         public void init(GLAutoDrawable drawable) {
             final GL3 gl = drawable.getGL().getGL3();
-            gl.setSwapInterval(0);
+//            gl.setSwapInterval(0);
             gl.glEnable(gl.GL_DEPTH_TEST);
 //            gl.glEnable(gl.GL_CULL_FACE);
             gl.glClearColor( 0.1f, 0.1f, 0.1f, 0f );
@@ -198,8 +199,8 @@ public class Spheres {
 
             shaderState.uniform(gl, new GLUniformData("material.ambient", 3, GLBuffers.newDirectFloatBuffer(new float[]{1.0f, 0.5f, 0.31f})));
             shaderState.uniform(gl, new GLUniformData("material.diffuse", 3, GLBuffers.newDirectFloatBuffer(new float[]{1.0f, 0.5f, 0.31f})));
-            shaderState.uniform(gl, new GLUniformData("material.specular", 3, GLBuffers.newDirectFloatBuffer(new float[]{0.5f, 0.5f, 0.5f})));
-            shaderState.uniform(gl, new GLUniformData("material.shininess", 32.0f));
+            shaderState.uniform(gl, new GLUniformData("material.specular", 3, GLBuffers.newDirectFloatBuffer(new float[]{0.2f, 0.2f, 0.2f})));
+            shaderState.uniform(gl, new GLUniformData("material.shininess", 8.0f));
 
 //            var lightDir = new Vector3f(-1, -1, -1).rotateX(time);
             var lightDir = new Vector3f(.5f, .5f, -1);

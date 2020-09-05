@@ -32,11 +32,12 @@ smooth in vec3 frag_pos;
 vec3 calcDirLight(DirLight light, vec3 normal, vec3 viewDir) {
     vec3 lightDir = normalize(-light.direction);
     lightDir = (view * vec4(lightDir, 0)).xyz;
+    vec3 halfwayDir = normalize(lightDir + viewDir);
 
     float diffuseFac = max(dot(normal, lightDir), 0.0);
 
     vec3 reflectDir = reflect(-lightDir, normal);
-    float specularFac = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
+    float specularFac = pow(max(dot(normal, halfwayDir), 0.0), material.shininess);
 
     vec3 ambient = light.ambient * material.diffuse;
     vec3 diffuse = light.diffuse * diffuseFac * material.diffuse;
