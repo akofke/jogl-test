@@ -73,8 +73,8 @@ public class SpheresDeferred {
 //                -0.5f,  0.5f, 0.0f   // top left
 //        });
 
-        private ShaderState shaderStateGeom;
-        private ShaderState shaderStateLighting;
+//        private ShaderState shaderStateGeom;
+//        private ShaderState shaderStateLighting;
 
         private int N = 1000;
 
@@ -225,8 +225,6 @@ public class SpheresDeferred {
             prog.add(gl, fragDeferred, System.err);
             prog.link(gl, System.err);
             this.shaderGeometryPass = prog;
-            this.shaderStateGeom = new ShaderState();
-            this.shaderStateGeom.attachShaderProgram(gl, this.shaderGeometryPass, false);
 
             var lightingShader = new ShaderProgram();
             var vertLighting = ShaderCode.create(gl, gl.GL_VERTEX_SHADER, 1, this.getClass(), new String[]{"sphereLightingPass.vert"}, false);
@@ -235,8 +233,10 @@ public class SpheresDeferred {
             lightingShader.add(gl, fragLighting, System.err);
             lightingShader.link(gl, System.err);
             this.shaderLightingPass = lightingShader;
-            this.shaderStateLighting = new ShaderState();
-            this.shaderStateLighting.attachShaderProgram(gl, this.shaderLightingPass, false);
+            this.shaderLightingPass.useProgram(gl, true);
+            setUniform(gl, shaderLightingPass, new GLUniformData("gPosition", 0));
+            setUniform(gl, shaderLightingPass, new GLUniformData("gNormal", 1));
+            setUniform(gl, shaderLightingPass, new GLUniformData("gAlbedoSpec", 2));
 
             var vaoBuf = IntBuffer.allocate(1);
             gl.glGenVertexArrays(1, vaoBuf);
@@ -281,7 +281,7 @@ public class SpheresDeferred {
             this.gBufferFBO.bind(gl);
             gl.glClearColor( 0.0f, 0.0f, 0.0f, 1f );
             gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT);
-            this.shaderStateGeom.useProgram(gl, true);
+//            this.shaderStateGeom.useProgram(gl, true);
 
             var view = new Matrix4f()
                     .translation(0, 0, -zoom)
@@ -297,17 +297,20 @@ public class SpheresDeferred {
 //            projection = new Matrix4f()
 //                    .ortho(-width / 2f / 100 * zoom, width / 2f / 100 * zoom, -height/ 2f / 100 * zoom, height / 2f / 100 * zoom, 0.01f, 100.0f);
 
-            shaderStateGeom.uniform(gl, new GLUniformData("view", 4, 4, view.get(matBuffer)));
-            shaderStateGeom.uniform(gl, new GLUniformData("projection", 4, 4, projection.get(matBuffer)));
-            shaderStateGeom.uniform(gl, new GLUniformData("nearZ", 0.1f));
+            this.shaderGeometryPass.useProgram(gl, true);
+//            shaderStateGeom.uniform(gl, new GLUniformData("view", 4, 4, view.get(matBuffer)));
+//            gl.glUniformMatrix4fv(gl.glGetUniformLocation(this.shaderGeometryPass.program(), "view"), 1, false, view.get(matBuffer));
+            setUniform(gl, this.shaderGeometryPass, new GLUniformData("view", 4, 4, view.get(matBuffer)));
+            setUniform(gl, this.shaderGeometryPass, new GLUniformData("projection", 4, 4, projection.get(matBuffer)));
+            setUniform(gl, this.shaderGeometryPass, new GLUniformData("nearZ", 0.1f));
 
             var viewPos = view.transformPosition(new Vector3f()).negate();
-            shaderStateGeom.uniform(gl, new GLUniformData("viewPos", 3, viewPos.get(GLBuffers.newDirectFloatBuffer(3))));
+            setUniform(gl, this.shaderGeometryPass, new GLUniformData("viewPos", 3, viewPos.get(GLBuffers.newDirectFloatBuffer(3))));
 
-            shaderStateGeom.uniform(gl, new GLUniformData("material.ambient", 3, GLBuffers.newDirectFloatBuffer(new float[]{1.0f, 0.5f, 0.31f})));
-            shaderStateGeom.uniform(gl, new GLUniformData("material.diffuse", 3, GLBuffers.newDirectFloatBuffer(new float[]{1.0f, 0.5f, 0.31f})));
-            shaderStateGeom.uniform(gl, new GLUniformData("material.specular", 3, GLBuffers.newDirectFloatBuffer(new float[]{0.5f, 0.5f, 0.5f})));
-            shaderStateGeom.uniform(gl, new GLUniformData("material.shininess", 32.0f));
+            setUniform(gl, this.shaderGeometryPass, new GLUniformData("material.ambient", 3, GLBuffers.newDirectFloatBuffer(new float[]{1.0f, 0.5f, 0.31f})));
+            setUniform(gl, this.shaderGeometryPass, new GLUniformData("material.diffuse", 3, GLBuffers.newDirectFloatBuffer(new float[]{1.0f, 0.5f, 0.31f})));
+            setUniform(gl, this.shaderGeometryPass, new GLUniformData("material.specular", 3, GLBuffers.newDirectFloatBuffer(new float[]{0.5f, 0.5f, 0.5f})));
+            setUniform(gl, this.shaderGeometryPass, new GLUniformData("material.shininess", 32.0f));
 
 
             gl.glBindVertexArray(this.vao);
@@ -324,7 +327,8 @@ public class SpheresDeferred {
             gl.glClearColor( 0.0f, 0.0f, 0.0f, 1f );
             gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT);
 
-            this.shaderStateLighting.useProgram(gl, true);
+//            this.shaderStateLighting.useProgram(gl, true);
+            this.shaderLightingPass.useProgram(gl, true);
 
             gl.glActiveTexture(gl.GL_TEXTURE0);
             gl.glBindTexture(gl.GL_TEXTURE_2D, gPosition.getName());
@@ -335,10 +339,10 @@ public class SpheresDeferred {
 
 //            var lightDir = new Vector3f(-1, -1, -1).rotateX(time);
             var lightDir = new Vector3f(.5f, .5f, -1);
-            shaderStateLighting.uniform(gl, new GLUniformData("light.direction", 3, lightDir.get(GLBuffers.newDirectFloatBuffer(3))));
-            shaderStateLighting.uniform(gl, new GLUniformData("light.ambient", 3, GLBuffers.newDirectFloatBuffer(new float[]{0.6f, 0.6f, 0.6f})));
-            shaderStateLighting.uniform(gl, new GLUniformData("light.diffuse", 3, GLBuffers.newDirectFloatBuffer(new float[]{0.8f, 0.8f, 0.8f})));
-            shaderStateLighting.uniform(gl, new GLUniformData("light.specular", 3, GLBuffers.newDirectFloatBuffer(new float[]{0.9f, 0.9f, 0.9f})));
+            setUniform(gl, this.shaderLightingPass, new GLUniformData("light.direction", 3, lightDir.get(GLBuffers.newDirectFloatBuffer(3))));
+            setUniform(gl, this.shaderLightingPass, new GLUniformData("light.ambient", 3, GLBuffers.newDirectFloatBuffer(new float[]{0.6f, 0.6f, 0.6f})));
+            setUniform(gl, this.shaderLightingPass, new GLUniformData("light.diffuse", 3, GLBuffers.newDirectFloatBuffer(new float[]{0.8f, 0.8f, 0.8f})));
+            setUniform(gl, this.shaderLightingPass, new GLUniformData("light.specular", 3, GLBuffers.newDirectFloatBuffer(new float[]{0.9f, 0.9f, 0.9f})));
 
             // render quad
             gl.glBindVertexArray(this.quadVAO);
@@ -388,5 +392,13 @@ public class SpheresDeferred {
                 zoom *= 1.05f;
             }
         }
+    }
+
+    public static void setUniform(GL3 gl, ShaderProgram program, GLUniformData uniform) {
+        gl.glUseProgram(program.program());
+        int loc = gl.glGetUniformLocation(program.program(), uniform.getName());
+//        System.out.println(loc);
+        uniform.setLocation(loc);
+        gl.glUniform(uniform);
     }
 }
