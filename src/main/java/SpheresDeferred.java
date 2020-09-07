@@ -42,7 +42,7 @@ public class SpheresDeferred {
             frame.pack();
             frame.setVisible(true);
 
-            var animator = new FPSAnimator(panel, 3);
+            var animator = new FPSAnimator(panel, 60);
 //            var animator = new Animator(panel);
             animator.setUpdateFPSFrames(60, System.err);
             animator.start();
@@ -309,7 +309,7 @@ public class SpheresDeferred {
 
             setUniform(gl, this.shaderGeometryPass, new GLUniformData("material.ambient", 3, GLBuffers.newDirectFloatBuffer(new float[]{1.0f, 0.5f, 0.31f})));
             setUniform(gl, this.shaderGeometryPass, new GLUniformData("material.diffuse", 3, GLBuffers.newDirectFloatBuffer(new float[]{1.0f, 0.5f, 0.31f})));
-            setUniform(gl, this.shaderGeometryPass, new GLUniformData("material.specular", 3, GLBuffers.newDirectFloatBuffer(new float[]{0.5f, 0.5f, 0.5f})));
+            setUniform(gl, this.shaderGeometryPass, new GLUniformData("material.specular", 3, GLBuffers.newDirectFloatBuffer(new float[]{0.1f, 0.1f, 0.1f})));
             setUniform(gl, this.shaderGeometryPass, new GLUniformData("material.shininess", 32.0f));
 
 
@@ -339,8 +339,9 @@ public class SpheresDeferred {
 
 //            var lightDir = new Vector3f(-1, -1, -1).rotateX(time);
             var lightDir = new Vector3f(.5f, .5f, -1);
+            lightDir.mulDirection(view);
             setUniform(gl, this.shaderLightingPass, new GLUniformData("light.direction", 3, lightDir.get(GLBuffers.newDirectFloatBuffer(3))));
-            setUniform(gl, this.shaderLightingPass, new GLUniformData("light.ambient", 3, GLBuffers.newDirectFloatBuffer(new float[]{0.6f, 0.6f, 0.6f})));
+            setUniform(gl, this.shaderLightingPass, new GLUniformData("light.ambient", 3, GLBuffers.newDirectFloatBuffer(new float[]{0.8f, 0.8f, 0.8f})));
             setUniform(gl, this.shaderLightingPass, new GLUniformData("light.diffuse", 3, GLBuffers.newDirectFloatBuffer(new float[]{0.8f, 0.8f, 0.8f})));
             setUniform(gl, this.shaderLightingPass, new GLUniformData("light.specular", 3, GLBuffers.newDirectFloatBuffer(new float[]{0.9f, 0.9f, 0.9f})));
 
@@ -362,8 +363,8 @@ public class SpheresDeferred {
             // wtf
             var scale = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration().getDefaultTransform().getScaleX();
             System.out.println(scale);
-//            width = width * (int)scale;
-//            height = height * (int)scale;
+            width = width * (int)scale;
+            height = height * (int)scale;
             this.width = width;
             this.height = height;
             gl.glViewport( 0, 0, width, height);

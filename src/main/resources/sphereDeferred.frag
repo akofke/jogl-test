@@ -5,7 +5,7 @@ layout (location = 1) out vec3 gNormal;
 layout (location = 2) out vec4 gAlbedoSpec;
 
 struct Material {
-    vec3 ambient;
+//    vec3 ambient;
     vec3 diffuse;
     vec3 specular;
     float shininess;
@@ -42,8 +42,8 @@ void main() {
 
     vec3 surface_normal = normalize(hit - sphere_center);
 
-    gPosition = -frag_pos;
+    gPosition = frag_pos;
     gNormal = surface_normal;
-    gAlbedoSpec.rbg = material.diffuse;
-    gAlbedoSpec.a = 1;
+    gAlbedoSpec.rgb = material.diffuse;
+    gAlbedoSpec.a = material.specular.r;
 }

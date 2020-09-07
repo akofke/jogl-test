@@ -24,7 +24,7 @@ void main() {
     vec3 diffuse = texture(gAlbedoSpec, TexCoords).rgb;
     float specular = texture(gAlbedoSpec, TexCoords).a;
 
-    vec3 viewDir = normalize(-frag_pos);
+    vec3 viewDir = normalize(frag_pos);
 
     vec3 lightDir = normalize(-light.direction);
     vec3 halfwayDir = normalize(lightDir + viewDir);
@@ -38,9 +38,9 @@ void main() {
     vec3 diffuseColor = light.diffuse * diffuseFac * diffuse;
     vec3 spec = light.specular * specularFac * specular;
 
-    float edgeFac = dot(viewDir, normal);
+    float edgeFac = dot(-viewDir, normal);
     float fac = smoothstep(0.3, 0.4, edgeFac);
     vec3 color = (ambientColor + diffuseColor + spec);
-//    FragColor = vec4(color * fac, 1.0);
-    FragColor = vec4(diffuse, 1);
+    FragColor = vec4(color * fac, 1.0);
+//    FragColor = vec4(vec3(specular), 1);
 }
