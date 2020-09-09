@@ -79,7 +79,7 @@ public class SpheresDeferred {
 //        private ShaderState shaderStateGeom;
 //        private ShaderState shaderStateLighting;
 
-        private int N = 10000;
+        private int N = 100000;
 
         private final FloatBuffer pos = genPos(N);
         private int posVbo = -1;
@@ -369,8 +369,8 @@ public class SpheresDeferred {
             gl.glUseProgram(shaderSSAO.program());
             setUniform(gl, shaderSSAO, new GLUniformData("ssaoKernel", 3, this.ssaoKernel));
             setUniform(gl, shaderSSAO, new GLUniformData("projection", 4, 4, projection.get(matBuffer)));
-            setUniform(gl, shaderSSAO, new GLUniformData("width", width));
-            setUniform(gl, shaderSSAO, new GLUniformData("height", height));
+            setUniform(gl, shaderSSAO, new GLUniformData("width", (float)width));
+            setUniform(gl, shaderSSAO, new GLUniformData("height", (float)height));
             gl.glActiveTexture(gl.GL_TEXTURE0);
             gl.glBindTexture(gl.GL_TEXTURE_2D, gPosition.getName());
             gl.glActiveTexture(gl.GL_TEXTURE1);
@@ -416,8 +416,8 @@ public class SpheresDeferred {
             var lightDir = new Vector3f(.5f, .5f, -1);
             lightDir.mulDirection(view);
             setUniform(gl, this.shaderLightingPass, new GLUniformData("light.direction", 3, lightDir.get(GLBuffers.newDirectFloatBuffer(3))));
-            setUniform(gl, this.shaderLightingPass, new GLUniformData("light.ambient", 3, GLBuffers.newDirectFloatBuffer(new float[]{0.8f, 0.8f, 0.8f})));
-            setUniform(gl, this.shaderLightingPass, new GLUniformData("light.diffuse", 3, GLBuffers.newDirectFloatBuffer(new float[]{0.8f, 0.8f, 0.8f})));
+            setUniform(gl, this.shaderLightingPass, new GLUniformData("light.ambient", 3, GLBuffers.newDirectFloatBuffer(new float[]{0.9f, 0.9f, 0.9f})));
+            setUniform(gl, this.shaderLightingPass, new GLUniformData("light.diffuse", 3, GLBuffers.newDirectFloatBuffer(new float[]{0.4f, 0.4f, 0.4f})));
             setUniform(gl, this.shaderLightingPass, new GLUniformData("light.specular", 3, GLBuffers.newDirectFloatBuffer(new float[]{0.9f, 0.9f, 0.9f})));
 
 
