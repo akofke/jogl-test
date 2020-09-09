@@ -7,6 +7,7 @@ in vec2 TexCoords;
 uniform sampler2D gPosition;
 uniform sampler2D gNormal;
 uniform sampler2D gAlbedoSpec;
+uniform sampler2D ssao;
 
 struct DirLight {
     vec3 direction;
@@ -23,6 +24,7 @@ void main() {
     vec3 normal = texture(gNormal, TexCoords).rgb;
     vec3 diffuse = texture(gAlbedoSpec, TexCoords).rgb;
     float specular = texture(gAlbedoSpec, TexCoords).a;
+    float ao = texture(ssao, TexCoords).r;
 
     vec3 viewDir = normalize(frag_pos);
 
@@ -34,7 +36,7 @@ void main() {
     vec3 reflectDir = reflect(-lightDir, normal);
     float specularFac = pow(max(dot(normal, halfwayDir), 0.0), 16.0);
 
-    vec3 ambientColor = light.ambient * diffuse;
+    vec3 ambientColor = light.ambient * diffuse * ao;
     vec3 diffuseColor = light.diffuse * diffuseFac * diffuse;
     vec3 spec = light.specular * specularFac * specular;
 
@@ -42,5 +44,5 @@ void main() {
     float fac = smoothstep(0.3, 0.4, edgeFac);
     vec3 color = (ambientColor + diffuseColor + spec);
     FragColor = vec4(color * fac, 1.0);
-//    FragColor = vec4(vec3(specular), 1);
+//    FragColor = vec4(1);
 }
