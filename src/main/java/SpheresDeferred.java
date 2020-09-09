@@ -443,6 +443,9 @@ public class SpheresDeferred {
     public static void setUniform(GL3 gl, ShaderProgram program, GLUniformData uniform) {
         gl.glUseProgram(program.program());
         int loc = gl.glGetUniformLocation(program.program(), uniform.getName());
+        if (loc < 0) {
+            throw new RuntimeException(uniform.toString());
+        }
 //        System.out.println(loc);
         uniform.setLocation(loc);
         gl.glUniform(uniform);
