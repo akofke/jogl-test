@@ -12,7 +12,7 @@ uniform mat4 projection;
 uniform float width;
 uniform float height;
 
-const float radius = 0.5;
+const float radius = 1.0;
 const float bias = 0.025;
 
 void main() {

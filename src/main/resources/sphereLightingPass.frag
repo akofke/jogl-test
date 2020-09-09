@@ -44,5 +44,5 @@ void main() {
     float fac = smoothstep(0.3, 0.4, edgeFac);
     vec3 color = (ambientColor + diffuseColor + spec);
     FragColor = vec4(color * fac, 1.0);
-//    FragColor = vec4(1);
+//    FragColor = vec4(vec3(ao), 1);
 }

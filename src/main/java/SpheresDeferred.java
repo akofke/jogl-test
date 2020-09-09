@@ -95,6 +95,9 @@ public class SpheresDeferred {
         private ShaderProgram shaderSSAO;
         private FloatBuffer ssaoKernel;
         private int noiseTexture;
+        private FBObject.TextureAttachment ssaoColorBufferBlur;
+        private FBObject ssaoBlurFBO;
+        private ShaderProgram shaderSSAOBlur;
 
         private FloatBuffer genPos(int n) {
             var rand = new Random().doubles(-10, 10).iterator();
@@ -162,7 +165,20 @@ public class SpheresDeferred {
             ssaoFBO.bind(gl);
             ssaoColorBuffer = ssaoFBO.attachTexture2D(gl,
                     0,
-                    gl.GL_RGBA16F,
+                    gl.GL_RED,
+                    gl.GL_RED,
+                    gl.GL_FLOAT,
+                    gl.GL_NEAREST,
+                    gl.GL_NEAREST,
+                    gl.GL_CLAMP_TO_EDGE,
+                    gl.GL_CLAMP_TO_EDGE);
+
+            ssaoBlurFBO = new FBObject();
+            ssaoBlurFBO.init(gl, width, height, 0);
+            ssaoBlurFBO.bind(gl);
+            ssaoColorBufferBlur = ssaoBlurFBO.attachTexture2D(gl,
+                    0,
+                    gl.GL_RED,
                     gl.GL_RED,
                     gl.GL_FLOAT,
                     gl.GL_NEAREST,
@@ -173,9 +189,8 @@ public class SpheresDeferred {
 
         private void resizeFBO(GL3 gl) {
             System.out.println(gBufferFBO.reset(gl, width, height, 0));
-            gBufferFBO.bind(gl);
-            gl.glDrawBuffers(3, new int[]{ gl.GL_COLOR_ATTACHMENT0, gl.GL_COLOR_ATTACHMENT1, gl.GL_COLOR_ATTACHMENT2}, 0);
             ssaoFBO.reset(gl, width, height, 0);
+            ssaoBlurFBO.reset(gl, width, height, 0);
         }
 
         @Override
@@ -224,6 +239,15 @@ public class SpheresDeferred {
             setUniform(gl, shaderSSAO, new GLUniformData("gPosition", 0));
             setUniform(gl, shaderSSAO, new GLUniformData("gNormal", 1));
             setUniform(gl, shaderSSAO, new GLUniformData("texNoise", 2));
+
+            this.shaderSSAOBlur = new ShaderProgram();
+            var vertSSAOBlur = ShaderCode.create(gl, gl.GL_VERTEX_SHADER, 1, this.getClass(), new String[]{"sphereLightingPass.vert"}, false);
+            var fragSSAOBlur = ShaderCode.create(gl, gl.GL_FRAGMENT_SHADER, 1, this.getClass(), new String[]{"ssaoBlur.frag"}, false);
+            shaderSSAOBlur.add(gl, vertSSAOBlur, System.err);
+            shaderSSAOBlur.add(gl, fragSSAOBlur, System.err);
+            shaderSSAOBlur.link(gl, System.err);
+            this.shaderSSAOBlur.useProgram(gl, true);
+            setUniform(gl, shaderSSAOBlur, new GLUniformData("ssaoInput", 0));
 
             var vaoBuf = IntBuffer.allocate(1);
             gl.glGenVertexArrays(1, vaoBuf);
@@ -342,7 +366,7 @@ public class SpheresDeferred {
             // ssao pass
             ssaoFBO.bind(gl);
             gl.glClear(gl.GL_COLOR_BUFFER_BIT);
-            shaderSSAO.useProgram(gl, true);
+            gl.glUseProgram(shaderSSAO.program());
             setUniform(gl, shaderSSAO, new GLUniformData("ssaoKernel", 3, this.ssaoKernel));
             setUniform(gl, shaderSSAO, new GLUniformData("projection", 4, 4, projection.get(matBuffer)));
             setUniform(gl, shaderSSAO, new GLUniformData("width", width));
@@ -355,12 +379,20 @@ public class SpheresDeferred {
             gl.glBindTexture(gl.GL_TEXTURE_2D, noiseTexture);
             gl.glBindVertexArray(this.quadVAO);
             gl.glDrawArrays(gl.GL_TRIANGLE_STRIP, 0, 4);
-            gl.glBindVertexArray(0);
 
-//            gl.glBindFramebuffer(gl.GL_READ_FRAMEBUFFER, this.ssaoFBO.getReadFramebuffer());
+            ssaoBlurFBO.bind(gl);
+            gl.glClear(gl.GL_COLOR_BUFFER_BIT);
+            gl.glUseProgram(shaderSSAOBlur.program());
+            gl.glActiveTexture(gl.GL_TEXTURE0);
+            gl.glBindTexture(gl.GL_TEXTURE_2D, ssaoColorBuffer.getName());
+            gl.glBindVertexArray(this.quadVAO);
+            gl.glDrawArrays(gl.GL_TRIANGLE_STRIP, 0, 4);
+
+//            gl.glBindFramebuffer(gl.GL_READ_FRAMEBUFFER, this.ssaoBlurFBO.getReadFramebuffer());
 //            gl.glReadBuffer(gl.GL_COLOR_ATTACHMENT0);
 //            gl.glBindFramebuffer(gl.GL_DRAW_FRAMEBUFFER, 0);
 //            gl.glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, gl.GL_COLOR_BUFFER_BIT, gl.GL_NEAREST);
+//            if (true) return;
 
             // Lighting pass
             // -------------
@@ -369,7 +401,7 @@ public class SpheresDeferred {
             gl.glClearColor( 0.0f, 0.0f, 0.0f, 1f );
             gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT);
 
-            this.shaderLightingPass.useProgram(gl, true);
+            gl.glUseProgram(shaderLightingPass.program());
 
             gl.glActiveTexture(gl.GL_TEXTURE0);
             gl.glBindTexture(gl.GL_TEXTURE_2D, gPosition.getName());
@@ -378,7 +410,7 @@ public class SpheresDeferred {
             gl.glActiveTexture(gl.GL_TEXTURE2);
             gl.glBindTexture(gl.GL_TEXTURE_2D, gAlbedoSpec.getName());
             gl.glActiveTexture(gl.GL_TEXTURE3);
-            gl.glBindTexture(gl.GL_TEXTURE_2D, ssaoColorBuffer.getName());
+            gl.glBindTexture(gl.GL_TEXTURE_2D, ssaoColorBufferBlur.getName());
 
 //            var lightDir = new Vector3f(-1, -1, -1).rotateX(time);
             var lightDir = new Vector3f(.5f, .5f, -1);
